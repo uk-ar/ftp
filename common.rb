@@ -19,6 +19,7 @@ module FTP
         @pwd || Dir.pwd
       end
       def handle(data)
+        puts "connected #{data}"
         cmd = data[0..3].strip.upcase
         options = data[4..-1].strip
         case cmd
@@ -28,7 +29,7 @@ module FTP
         when 'SYST'
           # what's your name?
           "215 UNIX Working With FTP"
-        when 'CMD'
+        when 'CWD'
           if File.directory?(options)
             @pwd = options
             "250 directory changed to #{pwd}"
@@ -39,9 +40,9 @@ module FTP
           "257 \"#{pwd}\" is the current directory"
         when 'PORT'
           parts = options.split(',')
-          ip_address = ports[0..3].join('.')
+          ip_address = parts[0..3].join('.')
           port = Integer(parts[4])*256+Integer(parts[5])
-
+          puts "port #{parts} #{ip_address} #{port}"
           @data_socket = TCPSocket.new(ip_address,port)
           "200 Active connection established (#{port})"
         when 'RETR'
@@ -68,3 +69,6 @@ module FTP
     end
   end
 end
+#ftp -4 -A localhost 4481
+#ls
+#get serial.rb
