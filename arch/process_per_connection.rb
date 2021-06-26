@@ -11,21 +11,12 @@ module FTP
 
         pid = fork do
           # child process
-          respond "220 OHAI"
-
           handler = CommandHandler.new(self)
-          loop do
-            request = @client.gets(CRLF)
-
-            if request
-              respond handler.handle(request)
-            else
-              @client.close
-              break
-            end
-          end
+          request = @client.gets(CRLF+CRLF)
+          respond handler.handle(request)
+          @client.close
         end
-
+        @client.close
         # parent process
         Process.detach(pid)
       end
