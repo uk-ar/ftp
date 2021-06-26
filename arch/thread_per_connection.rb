@@ -9,23 +9,17 @@ module FTP
       Thread.abort_on_exception = true
 
       loop do
-        @client = @control_socket.accept
+        client = @control_socket.accept
 
-        Thread.new do
+        Thread.new(client) do |client|
           # child thread
-          respond "220 OHAI"
 
-          handler = CommandHandler.new(self)
-          loop do
-            request = @client.gets(CRLF)
+          handler = CommandHandler.new(client)
+          request = client.gets(CRLF+CRLF)
+          client.write handler.handle(request)
+          #respond handler.handle(request)
 
-            if request
-              respond handler.handle(request)
-            else
-              @client.close
-              break
-            end
-          end
+          client.close
         end
 
         # parent thread?

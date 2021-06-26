@@ -22,20 +22,12 @@ module FTP
     def spawn_thread
       Thread.new do
         loop do
-          @client = @control_socket.accept
-          respond "220 OHAI"
-
+          client = @control_socket.accept
           handler = CommandHandler.new(self)
-          loop do
-            request = @client.gets(CRLF)
-
-            if request
-              respond handler.handle(request)
-            else
-              @client.close
-              break
-            end
-          end
+          request = client.gets(CRLF+CRLF)
+          client.write handler.handle(request)
+          #respond handler.handle(request)
+          client.close
         end
       end
     end
