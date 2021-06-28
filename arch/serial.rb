@@ -12,7 +12,7 @@ module FTP
         handler = CommandHandler.new(self)
         request = @client.gets(CRLF+CRLF)
         respond handler.handle(request)
-        @client.close
+        #@client.close
       end
     end
   end
