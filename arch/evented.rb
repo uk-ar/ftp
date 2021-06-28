@@ -16,22 +16,27 @@ module FTP
         @request, @response = "",""
         @hander = CommandHandler.new(self)
 
-        @response = "220 OHAI"+CRLF
-        on_writable
+        # @response = "220 OHAI"+CRLF
+        # on_writable
       end
 
       def on_data(data)
+        #pp "on data #{@client}"
+        #pp #{@client}
         @request << data
 
+        #if @request.end_with?(CRLF)
         if @request.end_with?(CRLF)
-          @response = @hander.handle(@request)+CRLF
+          @response = @hander.handle(@request)
           @request  = ""
         end
       end
 
       def on_writable #try to write
+        #pp "on writable #{@client}"
         bytes = client.write_nonblock(@response)
         @response.slice!(0,bytes)
+        @response.empty?
       end
 
       def monitor_for_reading?
@@ -58,6 +63,7 @@ module FTP
           # some one try to connect
           if socket == @control_socket
             io = @control_socket.accept
+            #pp "accepted #{io}"
             connection = Connection.new(io)
             @handles[io.fileno] = connection
           else
@@ -76,7 +82,10 @@ module FTP
 
         writables.each do |socket|
           connection = @handles[socket.fileno]
-          connection.on_writable
+          if connection.on_writable
+            @handles.delete(socket.fileno)
+            socket.close
+          end
         end
       end
     end
